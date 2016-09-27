@@ -20,8 +20,8 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
       for(x in letters){
         fromWeb <- fromJSON(paste0("http://api.railwayapi.com/suggest_station/name/",x,"/apikey/",api_key,"/"))
         
-        if(fromWeb[[3]] == 200){
-          df <- rbind(df, as.data.frame(fromWeb[[1]]))
+        if(fromWeb$response_code == 200){
+          df <- rbind(df, as.data.frame(fromWeb$station))
         }
       }
       df <- unique(df)
@@ -34,8 +34,8 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
       for(x in c(0:9)){
         fromWeb <- fromJSON(paste0("http://api.railwayapi.com/suggest_train/trains/",x,"/apikey/",api_key,"/"))
         
-        if(fromWeb[[4]] == 200){
-          df <- rbind(df, as.data.frame(fromWeb[[3]]))
+        if(fromWeb$response_code == 200){
+          df <- rbind(df, as.data.frame(fromWeb$trains))
         }
       }
       return(df)
@@ -47,8 +47,8 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
       for(x in station_code){
         fromWeb <- fromJSON(paste0("http://api.railwayapi.com/code_to_name/code/",tolower(x),"/apikey/",api_key,"/"))
         
-        if(fromWeb[[2]] == 200){
-          df <- rbind(df, as.data.frame(fromWeb[[1]]))
+        if(fromWeb$response_code == 200){
+          df <- rbind(df, as.data.frame(fromWeb$stations))
         }
       }
       df <- df[!duplicated(df$code), ]
@@ -56,13 +56,24 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
     }
     
     ##This function gives the detail of train
-    Train_detail <- function(train_no, api_key){
-      #TO DO
+    Train_route <- function(train_no, api_key){
+      intermediate_df <- data.frame(no = integer(), distance = integer(), day = integer(),halt = integer(), route = integer(), code = character(), fullname=character(), lat=double(), state=character(), lng=double(), scharr = character(), schdep = character(),stringsAsFactors=FALSE)
+      df <- data.frame(no = integer(), distance = integer(), day = integer(),halt = integer(), route = integer(), code = character(), fullname=character(), lat=double(), state=character(), lng=double(), scharr = character(), schdep = character(),stringsAsFactors=FALSE)
+      for (x in train_no){
+        fromWeb <- fromJSON(paste0("http://api.railwayapi.com/route/train/",x,"/apikey/",api_key,"/"))
+        if(fromWeb$response_code == 200){
+          intermediate_df <- as.data.frame(fromWeb$route)
+          intermediate_df$scharr[1] = intermediate_df$schdep[1]
+          intermediate_df$schdep[length(intermediate_df$schdep)] = intermediate_df$scharr[length(intermediate_df$scharr)]
+          df <- rbind(df, intermediate_df)
+        }
+      }
+      return(df)
     }
     
     ## This fuction is to clean the raw data of Train_Status table
     clean_train_status <- function(json_data){
-      df <- as.data.frame(json_data[[2]])
+      df <- as.data.frame(json_data$route)
       df$station_ <- NULL
       df$status <- NULL
       
@@ -80,17 +91,20 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
       df$actdep_datetime[df$actdep_datetime < df$actarr_datetime] <- df$actdep_datetime + days(1)
       
       df[,c("scharr","actarr","schdep", "actdep", "scharr_date", "actarr_date", "day", "no")] <- NULL
-      df$train_no <- json_data[7]
+      df$train_no <- json_data$train_number
       return(df)
     }
 
 ##Getting Data (One time extraction)---- 
     List_of_Trains <- AllTrains("klbec7664")
     List_of_Stations <- AllStations("klbec7664")
-    Detail_of_Trains <- Train_detail(List_of_Trains$number, "klbec7664")
-    Detail_of_Stations <- Station_detail(List_of_Stations$code, "klbec7664")
+    Detail_of_Trains <- Train_route(12721, "klbec7664")
+    Detail_of_Stations <- Station_detail("BHS", "klbec7664")
 
 ##Getting Data (Daily Extraction)----
     raw_data <- fromJSON("http://api.railwayapi.com/live/train/12721/doj/20160922/apikey/klbec7664/")
     testing <- clean_dataframe(raw_data)
 
+
+    fromWeb3 <- fromJSON("http://api.railwayapi.com/live/train/12721/doj/20160926/apikey/klbec7664/")
+    
