@@ -1,4 +1,4 @@
-##Author: Eudie
+##Author: Eudie------
 ##This is my CS50 final project. Here I am attempting to
 ##view the efficiency of indian railway by regions.
 ##I metric I chose is the average train delay in departure in past 30 days
@@ -6,7 +6,8 @@
 ##I will look at heat map of India at state, distict and station level
 ##Cleaning up----
 rm(list = ls())
-setwd("D:/Study/CS_basics/CS50_Final_Project")
+#setwd("D:/Study/CS_basics/CS50_Final_Project")
+#setwd("~/PythonProjects/CS50_Final_Project")
 
 ##Libraries used----
   library(jsonlite)
@@ -64,7 +65,7 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
         if(fromWeb$response_code == 200){
           intermediate_df <- as.data.frame(fromWeb$route)
           intermediate_df$scharr[1] = intermediate_df$schdep[1]
-          intermediate_df$schdep[length(intermediate_df$schdep)] = intermediate_df$scharr[length(intermediate_df$scharr)]
+          intermediate_df$schdep[intermediate_df$schdep=="Destination"] = intermediate_df$scharr[intermediate_df$schdep=="Destination"]
           intermediate_df$train_number = x
           df <- rbind(df, intermediate_df)
         }
@@ -91,7 +92,7 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
       df$schdep_datetime[df$schdep_datetime < df$scharr_datetime] <- df$schdep_datetime + days(1)
       df$actdep_datetime[df$actdep_datetime < df$actarr_datetime] <- df$actdep_datetime + days(1)
       
-      df[,c("scharr","actarr","schdep", "actdep", "scharr_date", "actarr_date", "day", "no")] <- NULL
+      #df[,c("scharr","actarr","schdep", "actdep", "scharr_date", "actarr_date", "day", "no")] <- NULL
       df$train_no <- json_data$train_number
       return(df)
     }
@@ -104,20 +105,15 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
         df <- data.frame(number=character(), total_stations=integer(), distance_covered = integer(),travel_time = numeric() ,stringsAsFactors=FALSE)
         total_stations <- max(a$no)
         distance_covered <- max(a$distance)
-        travel_time <- 1#Route$schdep[as.numeric(Route$no) == df$total_station] +
-         #                 hour(24*(Route$day[as.numeric(Route$no) == df$total_station]-1)) -
-          #                Route$scharr[as.numeric(Route$no) == 1]
+        travel_time <-  1#as.numeric(time_length(times(Route$schdep[Route$no == total_stations])- times(Route$scharr[Route$no == 1]), unit = "hours"))
+                       #hour(24*(Route$day[as.numeric(Route$no) == df$total_station]-1))
         number <- as.character(x)
-        df <- list(number, total_stations,distance_covered, travel_time)
-        
+        df <- cbind.data.frame(number, total_stations,distance_covered, travel_time)
+        colnames(df) <- c("number", "total_stations","distance_covered", "travel_time")
+        df$number <- as.character(df$number)
         
         fdf <- rbind(fdf, df)
       }
-      # colnames(fdf) <- c()
-      # fdf$number <- as.character(fdf$number)
-      # fdf$total_stations <- as.numeric(fdf$total_stations)
-      # fdf$distance_covered <- as.numeric(fdf$distance_covered)
-      # fdf$travel_time <- as.numeric(fdf$travel_time)
       return(fdf)
     }
     Sab <- Detail_of_Train(c(12721, 12722), Route_of_Trains)
@@ -131,15 +127,21 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
     #write.csv(List_of_Stations , "List_of_Station.csv", row.names = FALSE)
     #write.csv(List_of_Trains , "List_of_Trains.csv", row.names = FALSE)
     #write.csv(Route_of_Trains , "Route_of_Trains.csv", row.names = FALSE)
-    List_of_Trains <- read.csv("List_of_Trains.csv" ,stringsAsFactors=FALSE)
+    List_of_Trains <- read.csv("List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
     List_of_Stations <- read.csv("List_of_Station.csv",stringsAsFactors=FALSE)
-    Route_of_Trains <- read.csv("Route_of_Trains.csv",stringsAsFactors=FALSE)
+    Route_of_Trains <- read.csv("Route_of_Trains.csv",stringsAsFactors=FALSE, colClasses=c("train_number"="character"))
     
     List_of_Trains$total_stations <- max(Route_of_Trains$no[Route_of_Trains$train_number == List_of_Trains$number])
 ##Getting Data (Daily Extraction)----
-    raw_data <- fromJSON("http://api.railwayapi.com/live/train/12721/doj/20160922/apikey/klbec7664/")
-    testing <- clean_dataframe(raw_data)
+    raw_data <- fromJSON("http://api.railwayapi.com/live/train/12722/doj/20161002/apikey/klbec7664/")
+    testing <- clean_train_status(raw_data)
 
 
     fromWeb3 <- fromJSON("http://api.railwayapi.com/live/train/12721/doj/20160926/apikey/klbec7664/")
+    
+    
+    Route_of_Trains12721 <- Train_route(12721, "klbec7664")
+    Route_of_Trains12722 <- Train_route(12722, "klbec7664")
+    travel_time <- as.numeric(difftime(strptime(Route_of_Trains12722$schdep[Route_of_Trains12722$no == 65], "%H:%M"), strptime(Route_of_Trains12722$scharr[Route_of_Trains12722$no == 1], "%H:%M"), units = c("hours")))
+    travel_time
     
