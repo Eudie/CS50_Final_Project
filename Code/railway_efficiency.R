@@ -58,13 +58,14 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
     ##This function gives the detail of train
     Train_route <- function(train_no, api_key){
       intermediate_df <- data.frame(no = integer(), distance = integer(), day = integer(),halt = integer(), route = integer(), code = character(), fullname=character(), lat=double(), state=character(), lng=double(), scharr = character(), schdep = character(),stringsAsFactors=FALSE)
-      df <- data.frame(no = integer(), distance = integer(), day = integer(),halt = integer(), route = integer(), code = character(), fullname=character(), lat=double(), state=character(), lng=double(), scharr = character(), schdep = character(),stringsAsFactors=FALSE)
+      df <- data.frame(Train_number = character(),no = integer(), distance = integer(), day = integer(),halt = integer(), route = integer(), code = character(), fullname=character(), lat=double(), state=character(), lng=double(), scharr = character(), schdep = character(),stringsAsFactors=FALSE)
       for (x in train_no){
         fromWeb <- fromJSON(paste0("http://api.railwayapi.com/route/train/",x,"/apikey/",api_key,"/"))
         if(fromWeb$response_code == 200){
           intermediate_df <- as.data.frame(fromWeb$route)
           intermediate_df$scharr[1] = intermediate_df$schdep[1]
           intermediate_df$schdep[length(intermediate_df$schdep)] = intermediate_df$scharr[length(intermediate_df$scharr)]
+          intermediate_df$train_number = x
           df <- rbind(df, intermediate_df)
         }
       }
@@ -94,13 +95,47 @@ setwd("D:/Study/CS_basics/CS50_Final_Project")
       df$train_no <- json_data$train_number
       return(df)
     }
+    
+    ##Function is to find length of train
+    Detail_of_Train <- function(Train_no, Route){
+      fdf <- data.frame(number=character(), total_stations=integer(), distance_covered = integer(),travel_time = numeric() ,stringsAsFactors=FALSE)
+      for (x in Train_no){
+        a <- Route[Route$train_number == x,]
+        df <- data.frame(number=character(), total_stations=integer(), distance_covered = integer(),travel_time = numeric() ,stringsAsFactors=FALSE)
+        total_stations <- max(a$no)
+        distance_covered <- max(a$distance)
+        travel_time <- 1#Route$schdep[as.numeric(Route$no) == df$total_station] +
+         #                 hour(24*(Route$day[as.numeric(Route$no) == df$total_station]-1)) -
+          #                Route$scharr[as.numeric(Route$no) == 1]
+        number <- as.character(x)
+        df <- list(number, total_stations,distance_covered, travel_time)
+        
+        
+        fdf <- rbind(fdf, df)
+      }
+      # colnames(fdf) <- c()
+      # fdf$number <- as.character(fdf$number)
+      # fdf$total_stations <- as.numeric(fdf$total_stations)
+      # fdf$distance_covered <- as.numeric(fdf$distance_covered)
+      # fdf$travel_time <- as.numeric(fdf$travel_time)
+      return(fdf)
+    }
+    Sab <- Detail_of_Train(c(12721, 12722), Route_of_Trains)
 
 ##Getting Data (One time extraction)---- 
-    List_of_Trains <- AllTrains("klbec7664")
-    List_of_Stations <- AllStations("klbec7664")
-    Detail_of_Trains <- Train_route(12721, "klbec7664")
-    Detail_of_Stations <- Station_detail("BHS", "klbec7664")
-
+    #List_of_Trains <- AllTrains("klbec7664")
+    #List_of_Stations <- AllStations("klbec7664")
+    #Route_of_Trains <- Train_route(List_of_Trains$number, "klbec7664")
+    #Detail_of_Stations <- Station_detail("BHS", "klbec7664")
+    
+    #write.csv(List_of_Stations , "List_of_Station.csv", row.names = FALSE)
+    #write.csv(List_of_Trains , "List_of_Trains.csv", row.names = FALSE)
+    #write.csv(Route_of_Trains , "Route_of_Trains.csv", row.names = FALSE)
+    List_of_Trains <- read.csv("List_of_Trains.csv" ,stringsAsFactors=FALSE)
+    List_of_Stations <- read.csv("List_of_Station.csv",stringsAsFactors=FALSE)
+    Route_of_Trains <- read.csv("Route_of_Trains.csv",stringsAsFactors=FALSE)
+    
+    List_of_Trains$total_stations <- max(Route_of_Trains$no[Route_of_Trains$train_number == List_of_Trains$number])
 ##Getting Data (Daily Extraction)----
     raw_data <- fromJSON("http://api.railwayapi.com/live/train/12721/doj/20160922/apikey/klbec7664/")
     testing <- clean_dataframe(raw_data)
