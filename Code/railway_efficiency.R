@@ -102,18 +102,21 @@ rm(list = ls())
       fdf <- data.frame(number=character(), total_stations=integer(), distance_covered = integer(),travel_time = numeric() ,stringsAsFactors=FALSE)
       for (x in Train_no){
         a <- Route[Route$train_number == x,]
-        df <- data.frame(number=character(), total_stations=integer(), distance_covered = integer(),travel_time = numeric() ,stringsAsFactors=FALSE)
         total_stations <- max(a$no)
         distance_covered <- max(a$distance)
-        travel_time <-  1#as.numeric(time_length(times(Route$schdep[Route$no == total_stations])- times(Route$scharr[Route$no == 1]), unit = "hours"))
-                       #hour(24*(Route$day[as.numeric(Route$no) == df$total_station]-1))
+        end_time <-  as.character(a$schdep[a$no == total_stations])
+        start_time <- as.character(a$scharr[a$no == 1])
+        journey_days <- a$day[as.numeric(a$no) == total_stations]-1
+        journey_time <- as.numeric(difftime(strptime(end_time, "%H:%M") + days(journey_days), strptime(start_time, "%H:%M"), units = c("hours"))) #+ as.numeric(hours(24*journey_days))
         number <- as.character(x)
-        df <- cbind.data.frame(number, total_stations,distance_covered, travel_time)
-        colnames(df) <- c("number", "total_stations","distance_covered", "travel_time")
+        df <- cbind.data.frame(number, total_stations,distance_covered,  start_time, end_time,  journey_time)
+        colnames(df) <- c("number", "total_stations","distance_covered",  "start_time", "end_time", "journey_time")
+        df$start_time <- as.character(df$start_time)
+        df$end_time <- as.character(df$end_time)
         df$number <- as.character(df$number)
-        
         fdf <- rbind(fdf, df)
       }
+      fdf$average_speed <- fdf$distance_covered/fdf$journey_time
       return(fdf)
     }
     Sab <- Detail_of_Train(c(12721, 12722), Route_of_Trains)
