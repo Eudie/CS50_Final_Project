@@ -102,6 +102,9 @@ rm(list = ls())
       fdf <- data.frame(number=character(), total_stations=integer(), distance_covered = integer(),travel_time = numeric() ,stringsAsFactors=FALSE)
       for (x in Train_no){
         a <- Route[Route$train_number == x,]
+        t_type_table <- data.frame(first_num = as.character(c(0,1,2,3,4,5,6,7,8,9)), 
+                                   type = c("Special", "Long Distance", "Long Distance", "Suburban Kol", "Suburban Ch De SC", "Passenger", "MEMU", "DMU", "reserved", "Suburban MU"),
+                                   stringsAsFactors = F)
         total_stations <- max(a$no)
         distance_covered <- max(a$distance)
         end_time <-  as.character(a$schdep[a$no == total_stations])
@@ -109,13 +112,12 @@ rm(list = ls())
         journey_days <- a$day[as.numeric(a$no) == total_stations]-1
         journey_time <- as.numeric(difftime(strptime(end_time, "%H:%M") + days(journey_days), strptime(start_time, "%H:%M"), units = c("hours"))) #+ as.numeric(hours(24*journey_days))
         number <- as.character(x)
-        df <- cbind.data.frame(number, total_stations,distance_covered,  start_time, end_time,  journey_time)
-        colnames(df) <- c("number", "total_stations","distance_covered",  "start_time", "end_time", "journey_time")
-        df$start_time <- as.character(df$start_time)
-        df$end_time <- as.character(df$end_time)
-        df$number <- as.character(df$number)
+        train_type <- t_type_table$type[t_type_table$first_num == substr(number, 1, 1)]
+        is_superfast <- all(any(substr(number, 1, 1) == c("0", "1", "2")), substr(number,2, 2) == "2")
+        df <- data.frame(number, total_stations,distance_covered,  start_time, end_time,  journey_time, train_type, is_superfast,stringsAsFactors = F)
         fdf <- rbind(fdf, df)
       }
+      
       fdf$average_speed <- fdf$distance_covered/fdf$journey_time
       return(fdf)
     }
@@ -134,7 +136,7 @@ rm(list = ls())
     List_of_Stations <- read.csv("List_of_Station.csv",stringsAsFactors=FALSE)
     Route_of_Trains <- read.csv("Route_of_Trains.csv",stringsAsFactors=FALSE, colClasses=c("train_number"="character"))
     
-    List_of_Trains$total_stations <- max(Route_of_Trains$no[Route_of_Trains$train_number == List_of_Trains$number])
+    
 ##Getting Data (Daily Extraction)----
     raw_data <- fromJSON("http://api.railwayapi.com/live/train/12722/doj/20161002/apikey/klbec7664/")
     testing <- clean_train_status(raw_data)
