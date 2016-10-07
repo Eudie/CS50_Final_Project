@@ -101,6 +101,7 @@ rm(list = ls())
     Detail_of_Train <- function(Train_no, Route){
       fdf <- data.frame(number=character(), total_stations=integer(), distance_covered = integer(),travel_time = numeric() ,stringsAsFactors=FALSE)
       for (x in Train_no){
+        if(any(x == Route$train_number)){
         a <- Route[Route$train_number == x,]
         t_type_table <- data.frame(first_num = as.character(c(0,1,2,3,4,5,6,7,8,9)), 
                                    type = c("Special", "Long Distance", "Long Distance", "Suburban Kol", "Suburban Ch De SC", "Passenger", "MEMU", "DMU", "reserved", "Suburban MU"),
@@ -116,26 +117,28 @@ rm(list = ls())
         is_superfast <- all(any(substr(number, 1, 1) == c("0", "1", "2")), substr(number,2, 2) == "2")
         df <- data.frame(number, total_stations,distance_covered,  start_time, end_time,  journey_time, train_type, is_superfast,stringsAsFactors = F)
         fdf <- rbind(fdf, df)
-      }
+      }}
       
       fdf$average_speed <- fdf$distance_covered/fdf$journey_time
       return(fdf)
     }
-    Sab <- Detail_of_Train(c(12721, 12722), Route_of_Trains)
+
 
 ##Getting Data (One time extraction)---- 
     #List_of_Trains <- AllTrains("klbec7664")
     #List_of_Stations <- AllStations("klbec7664")
     #Route_of_Trains <- Train_route(List_of_Trains$number, "klbec7664")
-    #Detail_of_Stations <- Station_detail("BHS", "klbec7664")
+    Detail_of_Stations <- Station_detail(List_of_Stations$code, "klbec7664")
+    #Train_summary <- Detail_of_Train(List_of_Trains$number, Route_of_Trains)
     
     #write.csv(List_of_Stations , "List_of_Station.csv", row.names = FALSE)
     #write.csv(List_of_Trains , "List_of_Trains.csv", row.names = FALSE)
     #write.csv(Route_of_Trains , "Route_of_Trains.csv", row.names = FALSE)
+    #write.csv(Train_summary , "Train_summary.csv", row.names = FALSE)
     List_of_Trains <- read.csv("List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
     List_of_Stations <- read.csv("List_of_Station.csv",stringsAsFactors=FALSE)
     Route_of_Trains <- read.csv("Route_of_Trains.csv",stringsAsFactors=FALSE, colClasses=c("train_number"="character"))
-    
+    Train_summary <- read.csv("Train_summary.csv",stringsAsFactors=FALSE, colClasses=c("number"="character"))
     
 ##Getting Data (Daily Extraction)----
     raw_data <- fromJSON("http://api.railwayapi.com/live/train/12722/doj/20161002/apikey/klbec7664/")
