@@ -1,9 +1,10 @@
 ##Author: Eudie------
 ##This is my CS50 final project. Here I am attempting to
-##view the efficiency of indian railway by regions.
-##I metric I chose is the average train delay in departure in past 30 days
-##I am taking the data from unofficial APIs "railwayapi.com"
-##I will look at heat map of India at state, distict and station level
+##I am trying to analyze the effeciency of indian railways
+##The metric I chose is the average train delay in departure in past 30 days
+##I am fetching the data from unofficial APIs "railwayapi.com"
+##This Module is just for fetching static(one time) data
+
 ##Cleaning up----
 rm(list = ls())
 #setwd("D:/Study/CS_basics/CS50_Final_Project")
@@ -125,20 +126,25 @@ rm(list = ls())
 
 
 ##Getting Data (One time extraction)---- 
+    ##I have commented the code used to fetch data using api and writing that to csv. For future iterations i will read csvs.
+    
     #List_of_Trains <- AllTrains("klbec7664")
     #List_of_Stations <- AllStations("klbec7664")
     #Route_of_Trains <- Train_route(List_of_Trains$number, "klbec7664")
-    Detail_of_Stations <- Station_detail(List_of_Stations$code, "klbec7664")
+    #Detail_of_Stations <- Station_detail(List_of_Stations$code, "klbec7664")
     #Train_summary <- Detail_of_Train(List_of_Trains$number, Route_of_Trains)
+
+    #write.csv(List_of_Stations , "Data/List_of_Station.csv", row.names = FALSE)
+    #write.csv(List_of_Trains , "Data/List_of_Trains.csv", row.names = FALSE)
+    #write.csv(Route_of_Trains , "Data/Route_of_Trains.csv", row.names = FALSE)
+    #write.csv(Train_summary , "Data/Train_summary.csv", row.names = FALSE)
+    #write.csv(Detail_of_Stations , "Data/Detail_of_Stations.csv", row.names = FALSE)
     
-    #write.csv(List_of_Stations , "List_of_Station.csv", row.names = FALSE)
-    #write.csv(List_of_Trains , "List_of_Trains.csv", row.names = FALSE)
-    #write.csv(Route_of_Trains , "Route_of_Trains.csv", row.names = FALSE)
-    #write.csv(Train_summary , "Train_summary.csv", row.names = FALSE)
-    List_of_Trains <- read.csv("List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
-    List_of_Stations <- read.csv("List_of_Station.csv",stringsAsFactors=FALSE)
-    Route_of_Trains <- read.csv("Route_of_Trains.csv",stringsAsFactors=FALSE, colClasses=c("train_number"="character"))
-    Train_summary <- read.csv("Train_summary.csv",stringsAsFactors=FALSE, colClasses=c("number"="character"))
+    List_of_Trains <- read.csv("Data/List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
+    List_of_Stations <- read.csv("Data/List_of_Station.csv",stringsAsFactors=FALSE)
+    Route_of_Trains <- read.csv("Data/Route_of_Trains.csv",stringsAsFactors=FALSE, colClasses=c("train_number"="character"))
+    Detail_of_Stations <- read.csv("Data/Detail_of_Stations.csv",stringsAsFactors=FALSE )
+    Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colClasses=c("number"="character"))
     
 ##Getting Data (Daily Extraction)----
     raw_data <- fromJSON("http://api.railwayapi.com/live/train/12722/doj/20161002/apikey/klbec7664/")
