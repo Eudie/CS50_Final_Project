@@ -92,7 +92,7 @@ rm(list = ls())
         number <- as.character(x)
         train_type <- t_type_table$type[t_type_table$first_num == substr(number, 1, 1)]
         is_superfast <- all(any(substr(number, 1, 1) == c("0", "1", "2")), substr(number,2, 2) == "2")
-        df <- data.frame(number, total_stations,distance_covered,  start_time, end_time,  journey_time, train_type, is_superfast,stringsAsFactors = F)
+        df <- data.frame(number, total_stations,distance_covered,  start_time, end_time, journey_days, journey_time, train_type, is_superfast,stringsAsFactors = F)
         fdf <- rbind(fdf, df)
       }}
       
