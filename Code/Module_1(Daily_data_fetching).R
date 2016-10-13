@@ -36,6 +36,41 @@
   }
   
 ##Getting daily train status data----
-  raw_data <- fromJSON("http://api.railwayapi.com/live/train/11071/doj/20161008/apikey/klbec7664/")
+  raw_data <- fromJSON("http://api.railwayapi.com/live/train/12721/doj/20161011/apikey/klbec7664/")
   testing <- clean_train_status(raw_data)
   
+##main----
+  PracticeTrainSummary = Train_summary[any(Train_summary$number == c("12721", "", "", "", "", "", "", "", "")),]
+  main <- function(TrainSummary, api_key){
+    dataFrame = data.frame(scharr_date=character(), 
+                         actdep=character(), 
+                         latemin=integer(), 
+                         no=integer(), 
+                         station=character(), 
+                         scharr=character(), 
+                         has_departed=logical(), 
+                         has_arrived=logical(), 
+                         actarr=character(), 
+                         actarr_date=character(), 
+                         schdep=character(), 
+                         distance=integer(), 
+                         day=integer(), 
+                         scharr_datetime=character(), 
+                         actarr_datetime=character(), 
+                         schdep_datetime=character(), 
+                         actdep_datetime=character(), 
+                         train_no=character(), 
+                         stringsAsFactors=FALSE)
+  write.csv(dataFrame, paste0("Data/Daily_status/", today(),".csv"), row.names=F)
+  
+    for (i in TrainSummary$number) {
+      date <- format((today() - days(max(TrainSummary$journey_days[TrainSummary$number == i], 1))), "%Y%m%d")
+      tryCatch({
+        raw_status <- fromJSON(paste0("http://api.railwayapi.com/live/train/",i,"/doj/",date,"/apikey/",api_key,"/"))
+        fdaToAppend <- clean_train_status(raw_status)
+        write.csv(dataFrame, paste0("Data/Daily_status/", today(),".csv"), row.names=F, append = TRUE)
+      }, error=function(e){})
+    }
+  }
+  
+
