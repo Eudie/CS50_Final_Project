@@ -40,7 +40,7 @@
   testing <- clean_train_status(raw_data)
   
 ##main----
-  PracticeTrainSummary = Train_summary[any(Train_summary$number == c("12721", "", "", "", "", "", "", "", "")),]
+  PracticeTrainSummary = Train_summary[any(Train_summary$number == c("12721", "12624", "12725", "56661", "15119", "11045", "11047", "11058", "11072")),]
   main <- function(TrainSummary, api_key){
     dataFrame = data.frame(scharr_date=character(), 
                          actdep=character(), 
@@ -73,4 +73,4 @@
     }
   }
   
-
+  main(PracticeTrainSummary, "kelbec7664")
