@@ -34,13 +34,14 @@
     df$train_no <- json_data$train_number
     return(df)
   }
-  
+
 ##Getting daily train status data----
-  raw_data <- fromJSON("http://api.railwayapi.com/live/train/12721/doj/20161011/apikey/klbec7664/")
+  raw_data <- fromJSON("http://api.railwayapi.com/live/train/15119/doj/20161012/apikey/klbec7664/")
   testing <- clean_train_status(raw_data)
-  
+  PracticeTrainSummary = Train_summary[Train_summary$number %in% c("12721", "12624", "12725", "56661", "15119", "11045", "11047", "11058", "11072"),]
+
 ##main----
-  PracticeTrainSummary = Train_summary[any(Train_summary$number == c("12721", "12624", "12725", "56661", "15119", "11045", "11047", "11058", "11072")),]
+  
   main <- function(TrainSummary, api_key){
     dataFrame = data.frame(scharr_date=character(), 
                          actdep=character(), 
@@ -61,16 +62,16 @@
                          actdep_datetime=character(), 
                          train_no=character(), 
                          stringsAsFactors=FALSE)
-  write.csv(dataFrame, paste0("Data/Daily_status/", today(),".csv"), row.names=F)
-  
     for (i in TrainSummary$number) {
       date <- format((today() - days(max(TrainSummary$journey_days[TrainSummary$number == i], 1))), "%Y%m%d")
       tryCatch({
         raw_status <- fromJSON(paste0("http://api.railwayapi.com/live/train/",i,"/doj/",date,"/apikey/",api_key,"/"))
         fdaToAppend <- clean_train_status(raw_status)
-        write.csv(dataFrame, paste0("Data/Daily_status/", today(),".csv"), row.names=F, append = TRUE)
+        dataFrame <- rbind(dataFrame, fdaToAppend)
+        
       }, error=function(e){})
     }
+  write.table(dataFrame, paste0("Data/Daily_status/", today(),".csv"), row.names=F,  sep = ",")
   }
   
-  main(PracticeTrainSummary, "kelbec7664")
+main(Train_summary, "klbec7664")
