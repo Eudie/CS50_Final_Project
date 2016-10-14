@@ -103,22 +103,25 @@ rm(list = ls())
 ##Getting Data (One time extraction)---- 
     ##I have commented the code used to fetch data using api and writing that to csv. For future iterations i will read csvs.
     
-    #List_of_Trains <- AllTrains("klbec7664")
-    #List_of_Stations <- AllStations("klbec7664")
-    #Route_of_Trains <- Train_route(List_of_Trains$number, "klbec7664")
-    #Detail_of_Stations <- Station_detail(List_of_Stations$code, "klbec7664")
-    #Train_summary <- Detail_of_Train(List_of_Trains$number, Route_of_Trains)
+    List_of_Trains <- AllTrains("klbec7664")
+    List_of_Stations <- AllStations("klbec7664")
+    Route_of_Trains <- Train_route(List_of_Trains$number, "klbec7664")
+    Detail_of_Stations <- Station_detail(List_of_Stations$code, "klbec7664")
 
-    #write.csv(List_of_Stations , "Data/List_of_Station.csv", row.names = FALSE)
-    #write.csv(List_of_Trains , "Data/List_of_Trains.csv", row.names = FALSE)
-    #write.csv(Route_of_Trains , "Data/Route_of_Trains.csv", row.names = FALSE)
-    #write.csv(Train_summary , "Data/Train_summary.csv", row.names = FALSE)
-    #write.csv(Detail_of_Stations , "Data/Detail_of_Stations.csv", row.names = FALSE)
+##Correcting data issues----
+    #There are 4 trains whose day is showing one where it should be 2
+    Route_of_Trains$day[Route_of_Trains$train_number == "52074" & Route_of_Trains$no == 15] = 2
+    Route_of_Trains$day[Route_of_Trains$train_number == "59718" & Route_of_Trains$no == 28] = 2
+    Route_of_Trains$day[Route_of_Trains$train_number == "64466" & Route_of_Trains$no == 19] = 2
+    Route_of_Trains$day[Route_of_Trains$train_number == "66310" & Route_of_Trains$no == 16] = 2
     
-    List_of_Trains <- read.csv("Data/List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
-    List_of_Stations <- read.csv("Data/List_of_Station.csv",stringsAsFactors=FALSE)
-    Route_of_Trains <- read.csv("Data/Route_of_Trains.csv",stringsAsFactors=FALSE, colClasses=c("train_number"="character"))
-    Detail_of_Stations <- read.csv("Data/Detail_of_Stations.csv",stringsAsFactors=FALSE )
-    Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colClasses=c("number"="character"))
+    Train_summary <- Detail_of_Train(List_of_Trains$number, Route_of_Trains)    
+    
+##Writing on local----
+    write.csv(List_of_Stations , "Data/List_of_Station.csv", row.names = FALSE)
+    write.csv(List_of_Trains , "Data/List_of_Trains.csv", row.names = FALSE)
+    write.csv(Route_of_Trains , "Data/Route_of_Trains.csv", row.names = FALSE)
+    write.csv(Train_summary , "Data/Train_summary.csv", row.names = FALSE)
+    write.csv(Detail_of_Stations , "Data/Detail_of_Stations.csv", row.names = FALSE)
 
 ##End of the Module----
