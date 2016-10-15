@@ -115,7 +115,11 @@ rm(list = ls())
     Route_of_Trains$day[Route_of_Trains$train_number == "64466" & Route_of_Trains$no == 19] = 2
     Route_of_Trains$day[Route_of_Trains$train_number == "66310" & Route_of_Trains$no == 16] = 2
     
-    Train_summary <- Detail_of_Train(List_of_Trains$number, Route_of_Trains)    
+    #Splitting pincode and States in 'Detail of stations'
+    Detail_of_Stations$Pin_code <- ifelse(gsub('[^0-9]+','',Detail_of_Stations$state) == "",NA, gsub('[^0-9]+','',Detail_of_Stations$state))
+    Detail_of_Stations$state <- gsub(' [0-9]+','',Detail_of_Stations$state)
+    
+    Train_summary <- Detail_of_Train(List_of_Trains$number, Route_of_Trains)
     
 ##Writing on local----
     write.csv(List_of_Stations , "Data/List_of_Station.csv", row.names = FALSE)

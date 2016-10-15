@@ -52,7 +52,10 @@
   raw_data <- fromJSON("http://api.railwayapi.com/live/train/12721/doj/20161012/apikey/klbec7664/")
   testing <- clean_train_status(raw_data)
   PracticeTrainSummary = Train_summary[Train_summary$number %in% c("12721", "12624", "12725", "56661", "15119", "11045", "11047", "11058", "11072"),]
-
+  status <- read.csv("Data/Daily_status/2016-10-14.csv", stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
+  statuswwwe <- read.csv("Data/Daily_status/2016-10-15.csv", stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
+  ttt <- Train_summary[Train_summary$journey_days == 0,]
+  zzzz <- Train_summary[!(Train_summary$number %in% unique(statuswwwe$train_no)),]
 ##main----
   main <- function(TrainSummary, api_key){
     dataFrame = data.frame(
@@ -80,6 +83,6 @@
   write.table(dataFrame, paste0("Data/Daily_status/", today(),".csv"), row.names=F,  sep = ",")
   }
   
-main(Train_summary, "klbec7664")
+main(zzzz, "klbec7664")
 
 
