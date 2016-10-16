@@ -12,13 +12,6 @@
   library(chron)
   library(lubridate)
 
-##Reading data from local----
-  List_of_Trains <- read.csv("Data/List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
-  List_of_Stations <- read.csv("Data/List_of_Station.csv",stringsAsFactors=FALSE)
-  Route_of_Trains <- read.csv("Data/Route_of_Trains.csv",stringsAsFactors=FALSE, colClasses=c("train_number"="character"))
-  Detail_of_Stations <- read.csv("Data/Detail_of_Stations.csv",stringsAsFactors=FALSE )
-  Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colClasses=c("number"="character"))
-
 ##Function used ----
   ## This fuction is to clean the raw data of Train_Status table
   clean_train_status <- function(json_data){
@@ -48,16 +41,8 @@
     return(df)
   }
 
-##Getting daily train status data----
-  raw_data <- fromJSON("http://api.railwayapi.com/live/train/12721/doj/20161012/apikey/klbec7664/")
-  testing <- clean_train_status(raw_data)
-  PracticeTrainSummary = Train_summary[Train_summary$number %in% c("12721", "12624", "12725", "56661", "15119", "11045", "11047", "11058", "11072"),]
-  status <- read.csv("Data/Daily_status/2016-10-14.csv", stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
-  statuswwwe <- read.csv("Data/Daily_status/2016-10-15.csv", stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
-  ttt <- Train_summary[Train_summary$journey_days == 0,]
-  zzzz <- Train_summary[!(Train_summary$number %in% unique(statuswwwe$train_no)),]
-##main----
-  main <- function(TrainSummary, api_key){
+##main functions, whose job is to fetch data of current train status
+  main_morning <- function(TrainSummary, api_key){
     dataFrame = data.frame(
                          latemin=integer(), 
                          no=integer(), 
@@ -80,9 +65,49 @@
         
       }, error=function(e){})
     }
-  write.table(dataFrame, paste0("Data/Daily_status/", today(),".csv"), row.names=F,  sep = ",")
+  write.table(dataFrame, paste0("Data/Daily_status/", today(),"_Morning.csv"), row.names=F,  sep = ",")
   }
   
-main(zzzz, "klbec7664")
+  main_evening <- function(TrainSummary, api_key){
+    dataFrame = data.frame(
+      latemin=integer(), 
+      no=integer(), 
+      station=character(),
+      distance=integer(), 
+      day=integer(), 
+      scharr_datetime=character(), 
+      actarr_datetime=character(), 
+      schdep_datetime=character(), 
+      actdep_datetime=character(), 
+      train_no=character(),  
+      is_reached=logical(), 
+      stringsAsFactors=FALSE)
+    for (i in TrainSummary$number) {
+      date <- format(today() - days(TrainSummary$journey_days[TrainSummary$number == i]), "%Y%m%d")
+      tryCatch({
+        raw_status <- fromJSON(paste0("http://api.railwayapi.com/live/train/",i,"/doj/",date,"/apikey/",api_key,"/"))
+        fdaToAppend <- clean_train_status(raw_status)
+        dataFrame <- rbind(dataFrame, fdaToAppend)
+        
+      }, error=function(e){})
+    }
+    write.table(dataFrame, paste0("Data/Daily_status/", today(),"_Evening.csv"), row.names=F,  sep = ",")
+  }
+
+##Reading data from local----
+  List_of_Trains <- read.csv("Data/List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
+  List_of_Stations <- read.csv("Data/List_of_Station.csv",stringsAsFactors=FALSE)
+  Route_of_Trains <- read.csv("Data/Route_of_Trains.csv",stringsAsFactors=FALSE, colClasses=c("train_number"="character"))
+  Detail_of_Stations <- read.csv("Data/Detail_of_Stations.csv",stringsAsFactors=FALSE )
+  Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colClasses=c("number"="character"))
+
+##Getting daily train status data Morning----
+  ForMorning <- Train_summary[Train_summary$journey_days == 0,]
+  main_morning(ForMorning, "klbec7664")
+
+##Getting daily train status data Evening----  
+  TodayMorning <- read.csv(paste0("Data/Daily_status/", today(),"_Morning.csv"), stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
+  ForEvening <- Train_summary[!(Train_summary$number %in% unique(TodayMorning$train_no)),]
+  main_evening(ForEvening, "klbec7664")
 
 
