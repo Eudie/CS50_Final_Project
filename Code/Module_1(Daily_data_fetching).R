@@ -109,5 +109,5 @@
   TodayMorning <- read.csv(paste0("Data/Daily_status/", today(),"_Morning.csv"), stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
   ForEvening <- Train_summary[!(Train_summary$number %in% unique(TodayMorning$train_no)),]
   main_evening(ForEvening, "klbec7664")
-
-
+  TodayEvening <- read.csv(paste0("Data/Daily_status/", today(),"_Evening.csv"), stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
+  length(unique(TodayEvening$train_no))
