@@ -59,7 +59,7 @@
     for (i in TrainSummary$number) {
       date <- format((today() - days(max(TrainSummary$journey_days[TrainSummary$number == i], 1))), "%Y%m%d")
       tryCatch({
-        raw_status <- fromJSON(paste0("http://api.railwayapi.com/live/train/",i,"/doj/",date,"/apikey/",api_key,"/"))
+        raw_status <- fromJSON(url(paste0("http://api.railwayapi.com/live/train/",i,"/doj/",date,"/apikey/",api_key,"/")))
         fdaToAppend <- clean_train_status(raw_status)
         dataFrame <- rbind(dataFrame, fdaToAppend)
         
@@ -107,7 +107,12 @@
 
 ##Getting daily train status data Evening----  
   TodayMorning <- read.csv(paste0("Data/Daily_status/", today(),"_Morning.csv"), stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
+  length(unique(TodayMorning$train_no))
   ForEvening <- Train_summary[!(Train_summary$number %in% unique(TodayMorning$train_no)),]
   main_evening(ForEvening, "klbec7664")
   TodayEvening <- read.csv(paste0("Data/Daily_status/", today(),"_Evening.csv"), stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
   length(unique(TodayEvening$train_no))
+  
+  
+  raw_status <- fromJSON(url(paste0("http://api.railwayapi.com/live/train/51327/doj/20161016/apikey/klbec7664/")))
+  
