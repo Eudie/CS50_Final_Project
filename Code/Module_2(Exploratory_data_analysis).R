@@ -11,6 +11,8 @@
   library(ggplot2)
   library(chron)
   library(lubridate)
+  library(plyr)
+  library(ggmap)
 
 ##Reading data from local----
   List_of_Trains <- read.csv("Data/List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
@@ -18,7 +20,7 @@
   Route_of_Trains <- read.csv("Data/Route_of_Trains.csv",stringsAsFactors=FALSE, colClasses=c("train_number"="character"))
   Detail_of_Stations <- read.csv("Data/Detail_of_Stations.csv",stringsAsFactors=FALSE )
   Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colClasses=c("number"="character"))
-  status <- read.csv("Data/Daily_status/2016-10-14.csv", stringsAsFactors = FALSE, colClasses = c("train_no"="character"))
+  
 
 ##Summary of trains----
   summary(Train_summary)
@@ -75,5 +77,11 @@
   
 
 ##Summary of Stations----
+  TrainStops <- ddply(Route_of_Trains, .(code), "nrow")
+  names(TrainStops)[2] <- "stops"
   
+  Station_with_stops <- merge(Detail_of_Stations, TrainStops, by.x = "code", by.y = "code", all.x = T)
+  
+  map = get_map(location = 'INDIA')
+  ggmap(map) + geom_point(aes(x = lng, y = lat, size = stops), data = Station_with_stops, alpha = 0.5)
   
