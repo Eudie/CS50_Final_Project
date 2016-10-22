@@ -114,5 +114,5 @@
   length(unique(TodayEvening$train_no))
   
   
-  raw_status <- fromJSON(url(paste0("http://api.railwayapi.com/live/train/51327/doj/20161016/apikey/klbec7664/")))
+  raw_status <- fromJSON(url(paste0("http://api.railwayapi.com/live/train/51327/doj/20161021/apikey/klbec7664/")))
   

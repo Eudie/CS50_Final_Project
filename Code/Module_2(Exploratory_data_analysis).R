@@ -82,6 +82,37 @@
   
   Station_with_stops <- merge(Detail_of_Stations, TrainStops, by.x = "code", by.y = "code", all.x = T)
   
-  map = get_map(location = 'INDIA')
-  ggmap(map) + geom_point(aes(x = lng, y = lat, size = stops), data = Station_with_stops, alpha = 0.5)
+  map = get_map(location = 'INDIA', zoom = 4)
+  ggmap(map) + geom_point(aes(x = lng, y = lat, size = stops), color = 'red',data = Station_with_stops, alpha = 0.5)+scale_x_continuous(limits = c(68, 98), expand = c(0, 0)) +scale_y_continuous(limits = c(7, 37), expand = c(0, 0))
+  
+  ggsave("Charts/Station/stationNet.jpeg", width = 25, height = 27)
+  
+  
+  library(raster)
+  
+  IN0 <- getData('GADM', country='IND', level=0)
+  IN1 <- getData('GADM', country='IND', level=1)
+  IN2 <- getData('GADM', country='IND', level=2)
+  ### load data you downloaded
+  load("IND_adm0.RData")
+  ### plot the boundary
+  plot(IN0)
+  # library(maptools)
+  # states.shp <- readShapeSpatial("Data/IND_adm/IND_adm1.shp")
+  plot(IN1)
+  # plot(states.shp)
+  mydata<-data.frame(NAME_1=IN1$NAME_1, id=IN1$ID_1)
+  mydata$NAME_1 <- as.character(mydata$NAME_1)
+  mydata$NAME_1[mydata$NAME_1 == "NCT of Delhi"] <- "Delhi"
+  
+  states.shp.f <- fortify(IN1)
+  ### Set a range
+  lat <- c(7, 39)                
+  lon <- c(67, 100)   
+  
+  ### Get a map
+  map <- get_map(location = 'INDIA', zoom = 4)
+  ggmap(map)+scale_x_continuous(limits = c(68, 98), expand = c(0, 0)) +scale_y_continuous(limits = c(7, 37), expand = c(0, 0))
+  
+  ?get_map
   

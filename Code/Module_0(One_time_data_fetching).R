@@ -118,7 +118,17 @@ rm(list = ls())
     #Splitting pincode and States in 'Detail of stations'
     Detail_of_Stations$Pin_code <- ifelse(gsub('[^0-9]+','',Detail_of_Stations$state) == "",NA, gsub('[^0-9]+','',Detail_of_Stations$state))
     Detail_of_Stations$state <- gsub(' [0-9]+','',Detail_of_Stations$state)
-    
+    Detail_of_Stations$state[Detail_of_Stations$state == "Bhubaneswar"] <- "Odisha"
+    Detail_of_Stations$state[Detail_of_Stations$state == "Odisha."] <- "Odisha"
+    Detail_of_Stations$state[Detail_of_Stations$state == "West Bengal Station"] <- "West Bengal"
+    Detail_of_Stations$state[Detail_of_Stations$state == "Chattisgarh"] <- "Chhattisgarh"
+    Detail_of_Stations$state[Detail_of_Stations$state == "Thakrahan - Tamkuhi Station Rd"] <- "Bihar"
+    Detail_of_Stations$state[substr(Detail_of_Stations$state, 1, 2) == "18"] <- "Jammu and Kashmir"
+    Detail_of_Stations$state[substr(Detail_of_Stations$state, 1, 2) == "19"] <- "Jammu and Kashmir"
+    Detail_of_Stations$state[substr(Detail_of_Stations$state, 1, 2) == "78"] <- "Assam"
+    Detail_of_Stations$state[substr(Detail_of_Stations$state, 1, 2) == "79"] <- "Arunachal Pradesh"
+    Detail_of_Stations$state[Detail_of_Stations$state == "Kaliyani"] <- "Tamil Nadu"
+
     Train_summary <- Detail_of_Train(List_of_Trains$number, Route_of_Trains)
     
 ##Writing on local----
