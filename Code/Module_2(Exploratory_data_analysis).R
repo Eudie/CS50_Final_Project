@@ -82,6 +82,7 @@
   
   Station_with_stops <- merge(Detail_of_Stations, TrainStops, by.x = "code", by.y = "code", all.x = T)
   
+  ##Plot
   map = get_map(location = 'INDIA', zoom = 4)
   ggmap(map) + geom_point(aes(x = lng, y = lat, size = stops), color = 'red',data = Station_with_stops, alpha = 0.5)+
     scale_x_continuous(limits = c(68, 98), expand = c(0, 0)) +scale_y_continuous(limits = c(7, 37), expand = c(0, 0)) +

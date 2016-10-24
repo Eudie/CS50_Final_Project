@@ -19,45 +19,67 @@ Route_of_Trains <- read.csv("Data/Route_of_Trains.csv",stringsAsFactors=FALSE, c
 Detail_of_Stations <- read.csv("Data/Detail_of_Stations.csv",stringsAsFactors=FALSE )
 Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colClasses=c("number"="character"))
 
-##Reading all status file
+##Reading all status file in data frame and filtering unwanted data----
+  file_names <- dir("Data/Daily_status/") 
+  
+  LiveStatus <- do.call(rbind,lapply(paste0("Data/Daily_status/",file_names),read.csv,stringsAsFactors = F, colClasses=c("train_no"="character")))
+  LiveStatus$uniqueKey <- paste(LiveStatus$train_no, LiveStatus$station, LiveStatus$scharr_datetime, sep = "|")
+  
+  LiveStatus <- LiveStatus[!(duplicated(LiveStatus$uniqueKey)),]
+  LiveStatus$scharr_datetime <- as.POSIXct(LiveStatus$scharr_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
+  LiveStatus$schdep_datetime <- as.POSIXct(LiveStatus$schdep_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
+  LiveStatus$actarr_datetime <- as.POSIXct(LiveStatus$actarr_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
+  LiveStatus$actdep_datetime <- as.POSIXct(LiveStatus$actdep_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
+  
+  LiveStatus <- LiveStatus[LiveStatus$is_reached == TRUE,]
 
-file_names <- dir("Data/Daily_status/TestDir/") 
-
-your_data_frame <- do.call(rbind,lapply(paste0("Data/Daily_status/TestDir/",file_names),read.csv,stringsAsFactors = F, colClasses=c("train_no"="character")))
-your_data_frame$uniqueKey <- paste(your_data_frame$train_no, your_data_frame$station, your_data_frame$scharr_datetime, sep = "|")
-length(unique(your_data_frame$uniqueKey))
-uniquedf <- your_data_frame[!(duplicated(your_data_frame$uniqueKey)),]
-uniquedf$scharr_datetime <- as.POSIXct(uniquedf$scharr_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
-uniquedf$schdep_datetime <- as.POSIXct(uniquedf$schdep_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
-uniquedf$actarr_datetime <- as.POSIXct(uniquedf$actarr_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
-uniquedf$actdep_datetime <- as.POSIXct(uniquedf$actdep_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
-
-onlyReachedDF <- uniquedf[uniquedf$is_reached == TRUE,]
-summary(onlyReachedDF$scharr_datetime)
-crowd <- integer()
-for(x in onlyReachedDF$uniqueKey){
-  fil <- onlyReachedDF[onlyReachedDF$uniqueKey == x,]
-  onlyReachedDF$crowd[onlyReachedDF$uniqueKey == x] <- nrow(onlyReachedDF[(onlyReachedDF$station == fil$station &
-                                               onlyReachedDF$actarr_datetime >= (fil$actarr_datetime - hours(1)) &
-                                               onlyReachedDF$actarr_datetime <= (fil$actarr_datetime + hours(1))),])
-}
-onlyReachedDF$crowd[is.na(uniquedf$crowd)] <- 0
-
-for(i in c(1:length(onlyReachedDF$scharr_datetime))){
-  if(onlyReachedDF$no[i]==1){
-    onlyReachedDF$oneRoute[i] = TRUE
-  }else if((onlyReachedDF$scharr_datetime[i]- onlyReachedDF$scharr_datetime[i-1])>0 & onlyReachedDF$oneRoute[i-1]==TRUE){
-    onlyReachedDF$oneRoute[i] = TRUE
-  }else{
-    onlyReachedDF$oneRoute[i] = FALSE
+##Finding the number of trains arrived on each station 1 hour before and after the arrival of train----
+  for(x in c(1:length(LiveStatus$uniqueKey))){
+    fil <- LiveStatus[x,]
+    LiveStatus$crowd[x] <- nrow(LiveStatus[(LiveStatus$station == fil$station &
+                                                 LiveStatus$actarr_datetime >= (fil$actarr_datetime - hours(1)) &
+                                                 LiveStatus$actarr_datetime <= (fil$actarr_datetime + hours(1))),])
   }
-}
 
-df1 <- onlyReachedDF[onlyReachedDF$oneRoute == T,]
- for(j in c(1:length(df1$scharr_datetime))){
-   if(df1$no[j]==1){
-     df1$lateDiscreate[j] = df1$latemin[j]
+##Filtering the data with only main route of train----
+  for(i in c(1:length(LiveStatus$scharr_datetime))){
+    if(LiveStatus$no[i]==1){
+      LiveStatus$oneRoute[i] = TRUE
+    }else if((LiveStatus$scharr_datetime[i]- LiveStatus$scharr_datetime[i-1])>0 & LiveStatus$oneRoute[i-1]==TRUE){
+      LiveStatus$oneRoute[i] = TRUE
+    }else{
+      LiveStatus$oneRoute[i] = FALSE
+    }
+  }
+  LiveStatus <- LiveStatus[LiveStatus$oneRoute == T,]
+
+##Making new variable "last_delay" which gives incremental delay occured on each station of each train----
+ for(j in c(1:length(LiveStatus$scharr_datetime))){
+   if(LiveStatus$no[j]==1){
+     LiveStatus$lateDiscreate[j] = LiveStatus$latemin[j]
    }else{
-     df1$lateDiscreate[j] = df1$latemin[j] - df1$latemin[j-1]
+     LiveStatus$lateDiscreate[j] = LiveStatus$latemin[j] - LiveStatus$latemin[j-1]
    }
  }
+write.csv(LiveStatus, "Data/LiveStatus.csv")
+
+##Train Status by Stations----
+  TrainStops <- ddply(Route_of_Trains, .(code), "nrow")
+  names(TrainStops)[2] <- "stops"
+  
+  Station_with_stops <- merge(Detail_of_Stations, TrainStops, by.x = "code", by.y = "code", all.x = T)
+  
+  for(i in c(1:length(Station_with_stops$code))){
+    Station_with_stops$DelayOverall[i] <- mean(LiveStatus$latemin[LiveStatus$station == Station_with_stops$code[i]])
+    Station_with_stops$DelayDiscreate[i] <- mean(LiveStatus$lateDiscreate[LiveStatus$station == Station_with_stops$code[i]])
+  }
+  ##Plotting Chart
+
+##Train Status by train----
+  for(i in c(1:length(Train_summary$number))){
+    Train_summary$DelayOverall[i] <- mean(LiveStatus$latemin[LiveStatus$train_no == Train_summary$number[i]])
+    Train_summary$DelayDiscreate[i] <- mean(LiveStatus$lateDiscreate[LiveStatus$train_no == Train_summary$number[i]])
+  }
+  ##Plotting Chart
+  
+  
