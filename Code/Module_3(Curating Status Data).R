@@ -31,7 +31,7 @@ Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colCl
   LiveStatus$actarr_datetime <- as.POSIXct(LiveStatus$actarr_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
   LiveStatus$actdep_datetime <- as.POSIXct(LiveStatus$actdep_datetime,tz= "India", "%Y-%m-%d %H:%M:%S")
   
-  LiveStatus <- LiveStatus[LiveStatus$is_reached == TRUE,]
+  
 
 ##Finding the number of trains arrived on each station 1 hour before and after the arrival of train----
   for(x in c(1:length(LiveStatus$uniqueKey))){
@@ -40,6 +40,7 @@ Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colCl
                                                  LiveStatus$actarr_datetime >= (fil$actarr_datetime - hours(1)) &
                                                  LiveStatus$actarr_datetime <= (fil$actarr_datetime + hours(1))),])
   }
+  LiveStatus <- LiveStatus[LiveStatus$is_reached == TRUE,]
 
 ##Filtering the data with only main route of train----
   for(i in c(1:length(LiveStatus$scharr_datetime))){
@@ -61,18 +62,25 @@ Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colCl
      LiveStatus$lateDiscreate[j] = LiveStatus$latemin[j] - LiveStatus$latemin[j-1]
    }
  }
-write.csv(LiveStatus, "Data/LiveStatus.csv")
-
+LiveStatus_1 <- LiveStatus[1:200000,]
+LiveStatus_2 <- LiveStatus[200001:400000,]
+LiveStatus_3 <- LiveStatus[400001:600000,]
+LiveStatus_4 <- LiveStatus[600001:length(LiveStatus$distance),]
+write.csv(LiveStatus_1, "Data/CleanStatus/LiveStatus_1.csv", row.names = FALSE)
+write.csv(LiveStatus_2, "Data/CleanStatus/LiveStatus_2.csv", row.names = FALSE)
+write.csv(LiveStatus_3, "Data/CleanStatus/LiveStatus_3.csv", row.names = FALSE)
+write.csv(LiveStatus_4, "Data/CleanStatus/LiveStatus_4.csv", row.names = FALSE)
 ##Train Status by Stations----
   TrainStops <- ddply(Route_of_Trains, .(code), "nrow")
   names(TrainStops)[2] <- "stops"
   
-  Station_with_stops <- merge(Detail_of_Stations, TrainStops, by.x = "code", by.y = "code", all.x = T)
+  Detail_of_Stations <- merge(Detail_of_Stations, TrainStops, by.x = "code", by.y = "code", all.x = T)
   
-  for(i in c(1:length(Station_with_stops$code))){
-    Station_with_stops$DelayOverall[i] <- mean(LiveStatus$latemin[LiveStatus$station == Station_with_stops$code[i]])
-    Station_with_stops$DelayDiscreate[i] <- mean(LiveStatus$lateDiscreate[LiveStatus$station == Station_with_stops$code[i]])
+  for(i in c(1:length(Detail_of_Stations$code))){
+    Detail_of_Stations$DelayOverall[i] <- mean(LiveStatus$latemin[LiveStatus$station == Detail_of_Stations$code[i]])
+    Detail_of_Stations$DelayDiscreate[i] <- mean(LiveStatus$lateDiscreate[LiveStatus$station == Detail_of_Stations$code[i]])
   }
+  write.csv(Detail_of_Stations, "Data/Detail_of_Stations.csv", row.names = FALSE)
   ##Plotting Chart
 
 ##Train Status by train----
@@ -80,6 +88,7 @@ write.csv(LiveStatus, "Data/LiveStatus.csv")
     Train_summary$DelayOverall[i] <- mean(LiveStatus$latemin[LiveStatus$train_no == Train_summary$number[i]])
     Train_summary$DelayDiscreate[i] <- mean(LiveStatus$lateDiscreate[LiveStatus$train_no == Train_summary$number[i]])
   }
+  write.csv(Train_summary , "Data/Train_summary.csv", row.names = FALSE)
   ##Plotting Chart
   
   
