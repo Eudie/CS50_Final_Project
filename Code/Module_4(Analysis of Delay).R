@@ -19,14 +19,25 @@ Route_of_Trains <- read.csv("Data/Route_of_Trains.csv",stringsAsFactors=FALSE, c
 Detail_of_Stations <- read.csv("Data/Detail_of_Stations.csv",stringsAsFactors=FALSE )
 Train_summary <- read.csv("Data/Train_summary.csv",stringsAsFactors=FALSE, colClasses=c("number"="character"))
 LiveStatus_1 <- read.csv("Data/CleanStatus/LiveStatus_1.csv", stringsAsFactors = FALSE, colClasses=c("train_no"="character", 
-                                                                                     "scharr_datetime"="POSIXct",
-                                                                                     "actarr_datetime"="POSIXct",
-                                                                                     "schdep_datetime"="POSIXct",
-                                                                                     "actdep_datetime"="POSIXct"))
+                                                                                                     "scharr_datetime"="POSIXct",
+                                                                                                     "actarr_datetime"="POSIXct",
+                                                                                                     "schdep_datetime"="POSIXct",
+                                                                                                     "actdep_datetime"="POSIXct"))
 LiveStatus_2 <- read.csv("Data/CleanStatus/LiveStatus_2.csv", stringsAsFactors = FALSE, colClasses=c("train_no"="character", 
                                                                                                      "scharr_datetime"="POSIXct",
                                                                                                      "actarr_datetime"="POSIXct",
                                                                                                      "schdep_datetime"="POSIXct",
                                                                                                      "actdep_datetime"="POSIXct"))
+LiveStatus_3 <- read.csv("Data/CleanStatus/LiveStatus_3.csv", stringsAsFactors = FALSE, colClasses=c("train_no"="character", 
+                                                                                                     "scharr_datetime"="POSIXct",
+                                                                                                     "actarr_datetime"="POSIXct",
+                                                                                                     "schdep_datetime"="POSIXct",
+                                                                                                     "actdep_datetime"="POSIXct"))
+LiveStatus_4 <- read.csv("Data/CleanStatus/LiveStatus_4.csv", stringsAsFactors = FALSE, colClasses=c("train_no"="character", 
+                                                                                                     "scharr_datetime"="POSIXct",
+                                                                                                     "actarr_datetime"="POSIXct",
+                                                                                                     "schdep_datetime"="POSIXct",
+                                                                                                     "actdep_datetime"="POSIXct"))
 
-LiveStatus <- rbind(LiveStatus_1, LiveStatus_2)
+
+LiveStatus <- rbind(LiveStatus_1, LiveStatus_2, LiveStatus_3, LiveStatus_4)

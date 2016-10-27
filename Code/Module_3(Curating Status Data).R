@@ -8,9 +8,11 @@
 ##library used and WD----
 #setwd("D:/Study/CS_basics/CS50_Final_Project")
 #setwd("~/PythonProjects/CS50_Final_Project")  
-library(chron)
-library(lubridate)
-library(plyr)
+  library(ggplot2)
+  library(chron)
+  library(lubridate)
+  library(plyr)
+  library(ggmap)
 
 ##Reading data from local----
 List_of_Trains <- read.csv("Data/List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
@@ -82,6 +84,14 @@ write.csv(LiveStatus_4, "Data/CleanStatus/LiveStatus_4.csv", row.names = FALSE)
   }
   write.csv(Detail_of_Stations, "Data/Detail_of_Stations.csv", row.names = FALSE)
   ##Plotting Chart
+  map = get_map(location = 'INDIA', zoom = 4)
+  ggmap(map) + geom_point(aes(x = lng, y = lat, size = stops, color = DelayOverall), data = Detail_of_Stations, alpha = 0.5)+
+    scale_x_continuous(limits = c(68, 98), expand = c(0, 0)) +scale_y_continuous(limits = c(7, 37), expand = c(0, 0)) +
+    scale_size_continuous(name = "No. of train stops",range = c(1,8))  +scale_color_gradient(space ="Lab",low = "green", high = "red") +
+    theme(text=element_text(size=30),axis.line=element_blank(),axis.text.x=element_blank(),
+          axis.text.y=element_blank(),axis.ticks=element_blank(), axis.title.x=element_blank(),axis.title.y=element_blank(),legend.position="top", legend.direction = "horizontal") +
+    labs(title = "Railway Network - Station locations" )
+  ggsave("Charts/Station/stationDelayOverall.jpeg", width = 24, height = 27)
 
 ##Train Status by train----
   for(i in c(1:length(Train_summary$number))){
