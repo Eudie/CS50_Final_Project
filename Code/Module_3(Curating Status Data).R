@@ -13,7 +13,7 @@
   library(lubridate)
   library(plyr)
   library(ggmap)
-
+  library(scales)
 ##Reading data from local----
 List_of_Trains <- read.csv("Data/List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
 List_of_Stations <- read.csv("Data/List_of_Station.csv",stringsAsFactors=FALSE)
@@ -87,11 +87,19 @@ write.csv(LiveStatus_4, "Data/CleanStatus/LiveStatus_4.csv", row.names = FALSE)
   map = get_map(location = 'INDIA', zoom = 4)
   ggmap(map) + geom_point(aes(x = lng, y = lat, size = stops, color = DelayOverall), data = Detail_of_Stations, alpha = 0.5)+
     scale_x_continuous(limits = c(68, 98), expand = c(0, 0)) +scale_y_continuous(limits = c(7, 37), expand = c(0, 0)) +
-    scale_size_continuous(name = "No. of train stops",range = c(1,8))  +scale_color_gradient(space ="Lab",low = "green", high = "red") +
-    theme(text=element_text(size=30),axis.line=element_blank(),axis.text.x=element_blank(),
+    scale_size_continuous(name = "No. of train stops",range = c(1,8))  +scale_color_gradient(name = "Overall Delay (mins)",space ="Lab",low = "turquoise", high = "red", limits = c(0,120), oob=squish) +
+    theme(text=element_text(size=15),axis.line=element_blank(),axis.text.x=element_blank(),
           axis.text.y=element_blank(),axis.ticks=element_blank(), axis.title.x=element_blank(),axis.title.y=element_blank(),legend.position="top", legend.direction = "horizontal") +
-    labs(title = "Railway Network - Station locations" )
-  ggsave("Charts/Station/stationDelayOverall.jpeg", width = 24, height = 27)
+    labs(title = "Overall Delay by location" )
+  ggsave("Charts/Station/stationDelayOverall.jpeg", width = 10.5, height = 13)
+  
+  ggmap(map) + geom_point(aes(x = lng, y = lat, size = stops, color = DelayDiscreate), data = Detail_of_Stations, alpha = 0.5)+
+    scale_x_continuous(limits = c(68, 98), expand = c(0, 0)) +scale_y_continuous(limits = c(7, 37), expand = c(0, 0)) +
+    scale_size_continuous(name = "No. of train stops",range = c(1,8))  +scale_color_gradient(name = "Discrete Delay (mins)",space ="Lab",low = "turquoise", high = "red", limits = c(0,10), oob=squish) +
+    theme(text=element_text(size=15),axis.line=element_blank(),axis.text.x=element_blank(),
+          axis.text.y=element_blank(),axis.ticks=element_blank(), axis.title.x=element_blank(),axis.title.y=element_blank(),legend.position="top", legend.direction = "horizontal") +
+    labs(title = "Discrete Delay by location" )
+  ggsave("Charts/Station/stationDelayDiscrete.jpeg", width = 10.5, height = 13)
 
 ##Train Status by train----
   for(i in c(1:length(Train_summary$number))){
@@ -100,5 +108,15 @@ write.csv(LiveStatus_4, "Data/CleanStatus/LiveStatus_4.csv", row.names = FALSE)
   }
   write.csv(Train_summary , "Data/Train_summary.csv", row.names = FALSE)
   ##Plotting Chart
+  Train_summary$train_type <- factor(Train_summary$train_type, levels = c( "Long Distance","Passenger","Special","MEMU","DMU","Suburban Kol","Reserved"))
+  ggplot(data=Train_summary, aes(x = train_type, y =  DelayOverall)) + 
+    geom_boxplot( color = "blue", fill = "blue",alpha =0.2, width = 0.4) + theme_bw() + ylim(0,120) +
+    labs(title = "Overall delay by type of train", x = "Type of trains", y = "Overall Delay (mins)")
+  ggsave("Charts/Train/Delay_by_TrainType.jpeg", width = 11.25, height = 7.5)
+  
+  ggplot(data=Train_summary, aes(x = train_type, y =  DelayDiscreate)) + 
+    geom_boxplot( color = "blue", fill = "blue",alpha =0.2, width = 0.4) + theme_bw() + ylim(0,15) + 
+    labs(title = "Discrete delay by type of train", x = "Type of trains", y = "Discrete Delay (mins)")
+  ggsave("Charts/Train/DiscreteDelay_by_TrainType.jpeg", width = 11.25, height = 7.5)
   
   
