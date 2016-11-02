@@ -16,6 +16,10 @@ library(rpart)
 library(rpart.plot)
 library(caret)
 library(e1071)
+library(caTools)
+library(RColorBrewer)
+library(rattle)
+
 
 ##Reading data from local----
 List_of_Trains <- read.csv("Data/List_of_Trains.csv" ,stringsAsFactors=FALSE, colClasses=c("number"="character"))
@@ -70,25 +74,49 @@ LiveStatus$train_no <- as.factor(LiveStatus$train_no)
 LiveStatus$state <- as.factor(LiveStatus$state)
 LiveStatus$train_type <- as.factor(LiveStatus$train_type)
 
+##Dividing data in testing and training set----
+set.seed(1234)
+split <- sample.split(LiveStatus$lateDiscreate, SplitRatio = 0.7)
+training <- LiveStatus[split == T,]
+testing <- LiveStatus[split == F,]
+rm(LiveStatus, split)
+
 ##Formulae for iterations----
 formula0 <- formula("lateDiscreate ~ train_no+station+distance+day+no+scharr_datetime+actarr_datetime+
                       schdep_datetime+actdep_datetime+crowd+lat+lng+state+stops+total_stations+
                       distance_covered+journey_time+train_type+is_superfast+average_speed")
-formula1 <- formula("latemin ~ distance+scharr_datetime+actarr_datetime+
+formula1 <- formula("lateDiscreate ~ distance+scharr_datetime+actarr_datetime+
                       schdep_datetime+actdep_datetime+crowd+lat+lng+state+stops+total_stations+
                     distance_covered+journey_time+train_type+is_superfast+average_speed")
-formula2 <- formula("lateDiscreate ~ . - latemin")
-formula3 <- formula("lateDiscreate ~ . - latemin")
-formula4 <- formula("lateDiscreate ~ . - latemin")
+formula2 <- formula("lateDiscreate ~ distance+crowd+lat+lng+state+stops+total_stations+
+                    distance_covered+journey_time+train_type+is_superfast+average_speed")
+formula3 <- formula("lateDiscreate ~ crowd+lat+lng+state+stops+total_stations+
+                    distance_covered+journey_time+train_type+is_superfast+average_speed")
+formula4 <- formula("latemin ~ distance+crowd+lat+lng+state+stops+total_stations+
+                    distance_covered+journey_time+train_type+is_superfast+average_speed")
 
 ##Tree Model----
 set.seed(2)
 fold <- trainControl(method = "cv", number = 10)
-cartGrid = expand.grid( .cp = seq(0.002,0.1,0.002))
-train(formula1, data = LiveStatus, method = "rpart", trControl = fold, tuneGrid = cartGrid, na)
+cartGrid = expand.grid( .cp = seq(0.0000001,0.000001,0.0000001))
+train(formula4, data = training, method = "rpart", trControl = fold, tuneGrid = cartGrid,na.action = na.omit)
 
 
-cart_Model <- rpart(formula1, data = LiveStatus, minbucket = 1000)
-prp(cart_Model)
+cart_Model <- rpart(formula4, data = training, cp= 0.0000007)
 
+fancyRpartPlot(cart_Model,  xflip = T, main = "Simple Decision Tree Model for Overall Delay" ,sub = NULL)
 summary(cart_Model)
+
+
+#Important variables----
+VariableImp <- varImp(cart_Model, scale = FALSE)
+
+VariableImp <- cbind(VariableImp, rownames(VariableImp))
+colnames(VariableImp) <- c("Importance", "Variable")
+VariableImp <- VariableImp[order(VariableImp$Importance, decreasing = TRUE),]
+VariableImp$Variable <- factor(VariableImp$Variable, levels = VariableImp$Variable)
+
+ggplot(data=VariableImp, aes(x = Variable, y = Importance)) + geom_bar(stat = "identity",color = "blue", fill = "blue", alpha =0.2, width = 0.5) + theme_bw() + labs(title = "Importance of Variable by CART model", x = "Variables", y = "Importance Score")
+ggsave("Charts/ImpOfVariable.jpeg", width = 15, height = 10)
+
+##End----

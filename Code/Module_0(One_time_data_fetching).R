@@ -128,7 +128,7 @@ rm(list = ls())
     Detail_of_Stations$state[substr(Detail_of_Stations$state, 1, 2) == "78"] <- "Assam"
     Detail_of_Stations$state[substr(Detail_of_Stations$state, 1, 2) == "79"] <- "Arunachal Pradesh"
     Detail_of_Stations$state[Detail_of_Stations$state == "Kaliyani"] <- "Tamil Nadu"
-
+    Detail_of_Stations$state[Detail_of_Stations$state == "Station Rd"] <- "Maharashtra"
     Train_summary <- Detail_of_Train(List_of_Trains$number, Route_of_Trains)
     
 ##Writing on local----
